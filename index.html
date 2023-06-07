@@ -1,66 +1,95 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Recorrido Virtual de Cali con Realidad Aumentada</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.1.0/aframe/build/aframe-ar.js"></script>
-  </head>
-  <body>
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-      <a-assets>
-        <!-- Aquí puedes cargar los modelos 3D necesarios para la realidad aumentada -->
-        <a-asset-item id="modelo-3d" src="https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/almagua.glb"></a-asset-item>
-      </a-assets>
+<head>
+  <meta charset="utf-8" />
+  <title>Juego de Realidad Aumentada con Mapbox</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.1/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
 
-      <!-- Punto de referencia 1 -->
-      <a-entity id="punto1" gps-entity-place="latitude: LATITUD1; longitude: LONGITUD1;">
-        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
-        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 1"></a-popup>
-      </a-entity>
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
 
-      <!-- Punto de referencia 2 -->
-      <a-entity id="punto2" gps-entity-place="latitude: LATITUD2; longitude: LONGITUD2;">
-        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
-        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 2"></a-popup>
-      </a-entity>
+    #game-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+    }
 
-      <!-- Punto de referencia 3 -->
-      <a-entity id="punto3" gps-entity-place="latitude: LATITUD3; longitude: LONGITUD3;">
-        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
-        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 3"></a-popup>
-      </a-entity>
+    #game-overlay h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="game-overlay">
+    <h2>Puntos: <span id="score">0</span></h2>
+  </div>
 
-      <!-- Punto de referencia 4 -->
-      <a-entity id="punto4" gps-entity-place="latitude: LATITUD4; longitude: LONGITUD4;">
-        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
-        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 4"></a-popup>
-      </a-entity>
+  <script>
+    // Configuración del mapa de Mapbox
+    mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [-74.0637, 4.6473], // Coordenadas del centro del mapa
+      zoom: 15 // Nivel de zoom inicial
+    });
 
-      <!-- Punto de referencia 5 -->
-      <a-entity id="punto5" gps-entity-place="latitude: LATITUD5; longitude: LONGITUD5;">
-        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
-        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 5"></a-popup>
-      </a-entity>
+    // Array de puntos de interés (latitud, longitud, nombre y puntuación)
+    var pointsOfInterest = [
+      { lat: 4.6475, lng: -74.0639, name: 'Punto 1', score: 100 },
+      { lat: 4.6470, lng: -74.0632, name: 'Punto 2', score: 200 },
+      { lat: 4.6467, lng: -74.0645, name: 'Punto 3', score: 150 }
+      // Agrega más puntos de interés según tu juego
+    ];
 
-      <a-camera gps-camera rotation-reader></a-camera>
+    // Variable para almacenar el puntaje del jugador
+    var score = 0;
 
-      <script>
-        AFRAME.registerComponent('cursor-listener', {
-          init: function () {
-            var el = this.el;
-            el.addEventListener('click', function () {
-              // Aquí puedes agregar tu lógica para la interacción con el objeto 3D y el pop-up de información
-              var popup = el.querySelector('a-popup');
-              if (popup) {
-                popup.setAttribute('visible', 'true');
-                setTimeout(function () {
-                  popup.setAttribute('visible', 'false');
-                }, 3000);
-              }
-            });
-          }
+    // Función para crear los marcadores en el mapa
+    function createMarkers() {
+      pointsOfInterest.forEach(function (point) {
+        var el = document.createElement('div');
+        el.className = 'marker';
+        el.textContent = '📍';
+        
+        // Crea el marcador en el mapa
+        new mapboxgl.Marker(el)
+          .setLngLat([point.lng, point.lat])
+          .addTo(map);
+
+        // Asigna un evento click al marcador
+        el.addEventListener('click', function () {
+          // Incrementa el puntaje
+          score += point.score;
+          document.getElementById('score').textContent = score;
+
+          // Remueve el marcador del mapa
+          this.remove();
         });
-      </script>
-    </a-scene>
-  </body>
+      });
+    }
+
+    // Espera a que el mapa termine de cargar antes de crear los marcadores
+    map.on('load', function () {
+      createMarkers();
+    });
+  </script>
+</body>
 </html>
