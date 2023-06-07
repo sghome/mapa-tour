@@ -82,7 +82,7 @@
   </div>
   <div id="navigation-map"></div>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5Ye1BmWDTfVSJT-Z2yRMvVgMUk_ho9Xw&callback=initMap" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5Ye1BmWDTfVSJT-Z2yRMvVgMUk_ho9XwY&callback=initMap" async defer></script>
   <script>
     var destinations = [
       { name: 'Destino 1', lat: 40.7128, lng: -74.0060, info: 'Información del Destino 1', streetViewId: 'streetViewId1' },
@@ -95,11 +95,19 @@
     var markers = [];
 
     function initMap() {
+      var panoramaOptions = {
+        position: { lat: destinations[currentDestination].lat, lng: destinations[currentDestination].lng },
+        pov: { heading: 235, pitch: 10 },
+        zoom: 1
+      };
+      var panorama = new google.maps.StreetViewPanorama(document.getElementById('street-view'), panoramaOptions);
+      panorama.setPano(destinations[currentDestination].streetViewId);
+
       var mapOptions = {
-        center: { lat: destinations[0].lat, lng: destinations[0].lng },
+        center: { lat: destinations[currentDestination].lat, lng: destinations[currentDestination].lng },
         zoom: 15
       };
-      var map = new google.maps.Map(document.getElementById('street-view'), mapOptions);
+      var map = new google.maps.Map(document.getElementById('navigation-map'), mapOptions);
 
       // Crea los marcadores en el mapa para cada destino
       destinations.forEach(function (destination) {
