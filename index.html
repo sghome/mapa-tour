@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Recorrido Turístico con Google Street View</title>
+  <title>Mapa Turístico con Street View y Navegación</title>
   <style>
     body {
       margin: 0;
@@ -12,90 +12,157 @@
     #map {
       position: absolute;
       top: 0;
+      left: 0;
       right: 0;
       bottom: 0;
-      left: 0;
-    }
-
-    #audio-guide {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      z-index: 1;
     }
 
     #street-view {
       position: absolute;
       top: 0;
+      left: 0;
       right: 0;
+      bottom: 100px;
+    }
+
+    #audio-guide {
+      position: absolute;
       bottom: 0;
       left: 0;
+      right: 0;
+      height: 100px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #navigation-map {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 60px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #navigation-map .marker {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #FF0000;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+
+    #navigation-map .marker.active {
+      background-color: #00FF00;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <div id="street-view"></div>
   <div id="audio-guide">
     <audio controls autoplay>
       <source src="audio-guia.mp3" type="audio/mpeg">
       Tu navegador no soporta el elemento de audio.
     </audio>
   </div>
-  <div id="street-view"></div>
+  <div id="navigation-map"></div>
 
   <script>
-    // Array de puntos de destino
     var destinations = [
-      { name: 'Destino 1', lat: 40.7128, lng: -74.0060 },
-      { name: 'Destino 2', lat: 34.0522, lng: -118.2437 },
-      { name: 'Destino 3', lat: 51.5074, lng: -0.1278 }
+      { name: 'Destino 1', lat: 40.7128, lng: -74.0060, info: 'Información del Destino 1' },
+      { name: 'Destino 2', lat: 34.0522, lng: -118.2437, info: 'Información del Destino 2' },
+      { name: 'Destino 3', lat: 51.5074, lng: -0.1278, info: 'Información del Destino 3' }
       // Agrega más destinos según tu recorrido turístico
     ];
 
-    // Crea el mapa
-    function createMap() {
+    var currentDestination = 0;
+    var markers = [];
+
+    function initMap() {
       var map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: destinations[0].lat, lng: destinations[0].lng },
-        zoom: 10
+        zoom: 12
       });
 
-      // Agrega marcadores en el mapa para cada destino
+      // Crea los marcadores en el mapa para cada destino
       destinations.forEach(function (destination) {
-        new google.maps.Marker({
+        var marker = new google.maps.Marker({
           position: { lat: destination.lat, lng: destination.lng },
           map: map,
           title: destination.name
         });
+
+        // Agrega el evento click al marcador
+        marker.addListener('click', function () {
+          currentDestination = markers.indexOf(marker);
+          loadStreetView();
+        });
+
+        markers.push(marker);
       });
 
-      // Asigna eventos click a los marcadores
-      destinations.forEach(function (destination, index) {
-        var marker = map.markers[index];
-        marker.addListener('click', function () {
-          // Carga el Street View para el destino seleccionado
-          loadStreetView(destination);
+      // Crea el mapa de navegación circular
+      var navigationMap = document.getElementById('navigation-map');
+      var markersContainer = document.createElement('div');
+      markersContainer.classList.add('markers-container');
+
+      // Agrega los marcadores al mapa de navegación circular
+      markers.forEach(function (marker, index) {
+        var navigationMarker = document.createElement('div');
+        navigationMarker.classList.add('marker');
+        if (index === currentDestination) {
+          navigationMarker.classList.add('active');
+        }
+
+        navigationMarker.addEventListener('click', function () {
+          currentDestination = index;
+          loadStreetView();
         });
+
+        markersContainer.appendChild(navigationMarker);
       });
+
+      navigationMap.appendChild(markersContainer);
     }
 
-    // Carga el Street View para un destino específico
-    function loadStreetView(destination) {
+    function loadStreetView() {
       var panorama = new google.maps.StreetViewPanorama(
         document.getElementById('street-view'),
         {
-          position: { lat: destination.lat, lng: destination.lng },
+          position: { lat: destinations[currentDestination].lat, lng: destinations[currentDestination].lng },
           pov: { heading: 165, pitch: 0 },
           zoom: 1
         }
       );
       map.setStreetView(panorama);
-    }
 
-    // Carga el API de Google Maps y crea el mapa
-    function initMap() {
-      createMap();
+      // Actualiza los marcadores activos en el mapa de navegación circular
+      var navigationMarkers = document.querySelectorAll('#navigation-map .marker');
+      navigationMarkers.forEach(function (navigationMarker, index) {
+        navigationMarker.classList.remove('active');
+        if (index === currentDestination) {
+          navigationMarker.classList.add('active');
+        }
+      });
+
+      // Muestra el hotspot de información del destino actual
+      var infoWindow = new google.maps.InfoWindow({
+        content: destinations[currentDestination].info
+      });
+      infoWindow.open(map, markers[currentDestination]);
     }
   </script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdvgeq54ephscn03S7pMbMAep069PWBrY&callback=initMap"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
 </body>
 </html>
