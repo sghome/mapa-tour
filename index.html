@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Recorrido Virtual de Cali con Realidad Aumentada</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.1.0/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body>
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+      <a-assets>
+        <!-- Aquí puedes cargar los modelos 3D necesarios para la realidad aumentada -->
+        <a-asset-item id="modelo-3d" src="https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/almagua.glb"></a-asset-item>
+      </a-assets>
+
+      <!-- Punto de referencia 1 -->
+      <a-entity id="punto1" gps-entity-place="latitude: LATITUD1; longitude: LONGITUD1;">
+        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
+        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 1"></a-popup>
+      </a-entity>
+
+      <!-- Punto de referencia 2 -->
+      <a-entity id="punto2" gps-entity-place="latitude: LATITUD2; longitude: LONGITUD2;">
+        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
+        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 2"></a-popup>
+      </a-entity>
+
+      <!-- Punto de referencia 3 -->
+      <a-entity id="punto3" gps-entity-place="latitude: LATITUD3; longitude: LONGITUD3;">
+        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
+        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 3"></a-popup>
+      </a-entity>
+
+      <!-- Punto de referencia 4 -->
+      <a-entity id="punto4" gps-entity-place="latitude: LATITUD4; longitude: LONGITUD4;">
+        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
+        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 4"></a-popup>
+      </a-entity>
+
+      <!-- Punto de referencia 5 -->
+      <a-entity id="punto5" gps-entity-place="latitude: LATITUD5; longitude: LONGITUD5;">
+        <a-entity gltf-model="#modelo-3d" scale="0.2 0.2 0.2" cursor-listener></a-entity>
+        <a-popup position="0 0.5 0" material="color: white; opacity: 0.8; side: double" text="value: Información del Punto de Referencia 5"></a-popup>
+      </a-entity>
+
+      <a-camera gps-camera rotation-reader></a-camera>
+
+      <script>
+        AFRAME.registerComponent('cursor-listener', {
+          init: function () {
+            var el = this.el;
+            el.addEventListener('click', function () {
+              // Aquí puedes agregar tu lógica para la interacción con el objeto 3D y el pop-up de información
+              var popup = el.querySelector('a-popup');
+              if (popup) {
+                popup.setAttribute('visible', 'true');
+                setTimeout(function () {
+                  popup.setAttribute('visible', 'false');
+                }, 3000);
+              }
+            });
+          }
+        });
+      </script>
+    </a-scene>
+  </body>
+</html>
