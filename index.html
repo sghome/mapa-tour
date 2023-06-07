@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Mapa Turístico con Street View y Navegación</title>
+  <title>Guía Turística con Street View y Mapa de Navegación</title>
   <style>
     body {
       margin: 0;
@@ -66,8 +66,22 @@
       background-color: #00FF00;
     }
   </style>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/2.2.0/aframe/build/aframe-ar.js"></script>
 </head>
 <body>
+  <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+    <a-marker type="location" latitude="40.7128" longitude="-74.0060">
+      <a-box position="0 0.5 0" material="color: red;"></a-box>
+    </a-marker>
+    <a-marker type="location" latitude="34.0522" longitude="-118.2437">
+      <a-sphere position="0 0.5 0" radius="0.5" material="color: blue;"></a-sphere>
+    </a-marker>
+    <a-marker type="location" latitude="51.5074" longitude="-0.1278">
+      <a-cylinder position="0 0.5 0" radius="0.5" height="1" material="color: green;"></a-cylinder>
+    </a-marker>
+  </a-scene>
+
   <div id="map"></div>
   <div id="street-view"></div>
   <div id="audio-guide">
@@ -163,6 +177,6 @@
       infoWindow.open(map, markers[currentDestination]);
     }
   </script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdvgeq54ephscn03S7pMbMAep069PWBrY&callback=initMap"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdvgeq54ephscn03S7pMbMAep069PWBrY&callback=initMap" async defer></script>
 </body>
 </html>
