@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Guía Turística con Street View y Mapa de Navegación</title>
+  <title>Guía Turística con OpenStreetMap y Street View</title>
   <style>
     body {
       margin: 0;
@@ -86,12 +86,13 @@
   <div id="street-view"></div>
   <div id="audio-guide">
     <audio controls autoplay>
-      <source src="stas.mp3" type="audio/mpeg">
+      <source src="audio-guia.mp3" type="audio/mpeg">
       Tu navegador no soporta el elemento de audio.
     </audio>
   </div>
   <div id="navigation-map"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
     var destinations = [
       { name: 'Destino 1', lat: 40.7128, lng: -74.0060, info: 'Información del Destino 1' },
@@ -104,21 +105,19 @@
     var markers = [];
 
     function initMap() {
-      var map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: destinations[0].lat, lng: destinations[0].lng },
-        zoom: 12
-      });
+      var map = L.map('map').setView([destinations[0].lat, destinations[0].lng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+        maxZoom: 18
+      }).addTo(map);
 
       // Crea los marcadores en el mapa para cada destino
       destinations.forEach(function (destination) {
-        var marker = new google.maps.Marker({
-          position: { lat: destination.lat, lng: destination.lng },
-          map: map,
-          title: destination.name
-        });
+        var marker = L.marker([destination.lat, destination.lng]).addTo(map);
 
         // Agrega el evento click al marcador
-        marker.addListener('click', function () {
+        marker.on('click', function () {
           currentDestination = markers.indexOf(marker);
           loadStreetView();
         });
@@ -151,15 +150,11 @@
     }
 
     function loadStreetView() {
-      var panorama = new google.maps.StreetViewPanorama(
-        document.getElementById('street-view'),
-        {
-          position: { lat: destinations[currentDestination].lat, lng: destinations[currentDestination].lng },
-          pov: { heading: 165, pitch: 0 },
-          zoom: 1
-        }
-      );
-      map.setStreetView(panorama);
+      var streetViewUrl = 'https://maps.googleapis.com/maps/api/streetview?size=600x400&location=' +
+        destinations[currentDestination].lat + ',' + destinations[currentDestination].lng +
+        '&fov=90&heading=235&pitch=10';
+
+      document.getElementById('street-view').innerHTML = '<img src="' + streetViewUrl + '">';
 
       // Actualiza los marcadores activos en el mapa de navegación circular
       var navigationMarkers = document.querySelectorAll('#navigation-map .marker');
@@ -171,12 +166,17 @@
       });
 
       // Muestra el hotspot de información del destino actual
-      var infoWindow = new google.maps.InfoWindow({
-        content: destinations[currentDestination].info
-      });
-      infoWindow.open(map, markers[currentDestination]);
+      var infoWindow = L.popup()
+        .setLatLng([destinations[currentDestination].lat, destinations[currentDestination].lng])
+        .setContent(destinations[currentDestination].info)
+        .openOn(map);
     }
   </script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdvgeq54ephscn03S7pMbMAep069PWBrY&callback=initMap" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.1/leaflet.markercluster.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.3.4/leaflet-routing-machine.js"></script>
+  <script>
+    initMap();
+  </script>
 </body>
 </html>
